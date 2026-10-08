@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../screens/welcome_screen.dart';
 // TODO: Nanti import screen-screen yang dibuat
-// import '../screens/welcome_screen.dart';
 // import '../screens/quiz_screen.dart';
 // import '../screens/result_screen.dart';
 
@@ -11,7 +11,7 @@ class AppRouter {
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => const PlaceholderScreen(title: 'Welcome Screen'), // Ganti jadi WelcomeScreen
+        builder: (context, state) => const WelcomeScreen(),
       ),
       GoRoute(
         path: '/quiz',

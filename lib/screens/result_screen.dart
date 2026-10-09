@@ -1,125 +1,236 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
+import '../config/app_palette.dart';
 import '../providers/quiz_provider.dart';
-import '../widgets/primary_button.dart';
+import '../utils/responsive.dart';
+import '../widgets/app_button.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_icon.dart';
+import '../widgets/score_ring.dart';
+import '../widgets/stat_tile.dart';
 
+/// Skor akhir: sapaan nama, cincin skor, jumlah benar/salah, dan aksi lanjutan.
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final provider = context.read<QuizProvider>();
-    final isDarkMode = theme.brightness == Brightness.dark;
+    // Hasil bersifat final, jadi cukup `read` (tidak perlu rebuild saat state
+    // direset ketika berpindah halaman).
+    final quiz = context.read<QuizProvider>();
+    final isWide = context.screenClass != ScreenClass.compact;
 
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Ikon Piala
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: theme.primaryColor.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: SvgPicture.asset(
-                    'assets/icons/trophy.svg',
-                    width: 80,
-                    height: 80,
-                    colorFilter: ColorFilter.mode(theme.primaryColor, BlendMode.srcIn),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                
-                // Pesan Selamat
-                Text(
-                  'Kuis Selesai!',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Kerja bagus, ${provider.userName}!',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                
-                // Skor
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 48),
-                  decoration: BoxDecoration(
-                    color: isDarkMode ? Colors.grey[850] : Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'SKOR ANDA',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.5,
-                          color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${provider.score}',
-                        style: TextStyle(
-                          fontSize: 64,
-                          fontWeight: FontWeight.w900,
-                          color: theme.primaryColor,
-                          height: 1,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '/ 100',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.grey[500] : Colors.grey[400],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 48),
-                
-                // Tombol Main Lagi
-                PrimaryButton(
-                  text: 'Main Lagi',
-                  iconPath: 'assets/icons/rotate-ccw.svg',
-                  onPressed: () {
-                    provider.resetQuiz();
-                    context.go('/');
-                  },
-                ),
-              ],
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: isWide ? 32 : context.rs(24),
+            vertical: isWide ? 24 : context.rs(16),
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: isWide ? 960 : 520),
+              child: Column(
+                children: [
+                  const AppHeader(title: 'Hasil kuis'),
+                  SizedBox(height: isWide ? 32 : context.rs(20)),
+                  isWide ? _WideBody(quiz: quiz) : _CompactBody(quiz: quiz),
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CompactBody extends StatelessWidget {
+  const _CompactBody({required this.quiz});
+
+  final QuizProvider quiz;
+
+  @override
+  Widget build(BuildContext context) {
+    final ring = (MediaQuery.sizeOf(context).width * 0.5).clamp(160.0, 240.0).toDouble();
+    return Column(
+      children: [
+        _Summary(quiz: quiz),
+        SizedBox(height: context.rs(24)),
+        ScoreRing(score: quiz.score, size: ring),
+        SizedBox(height: context.rs(24)),
+        _Stats(quiz: quiz),
+        SizedBox(height: context.rs(16)),
+        _Actions(quiz: quiz),
+      ],
+    );
+  }
+}
+
+class _WideBody extends StatelessWidget {
+  const _WideBody({required this.quiz});
+
+  final QuizProvider quiz;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            children: [
+              _Summary(quiz: quiz),
+              const SizedBox(height: 32),
+              ScoreRing(score: quiz.score, size: 240),
+            ],
+          ),
+        ),
+        const SizedBox(width: 48),
+        Expanded(
+          child: Column(
+            children: [
+              _Stats(quiz: quiz),
+              const SizedBox(height: 16),
+              _Actions(quiz: quiz),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Lencana "KUIS SELESAI", sapaan, dan deskripsi.
+class _Summary extends StatelessWidget {
+  const _Summary({required this.quiz});
+
+  final QuizProvider quiz;
+
+  String get _greeting {
+    if (quiz.score >= 80) return 'Kerja bagus';
+    if (quiz.score >= 50) return 'Lumayan';
+    return 'Tetap semangat';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: p.tint,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppIcon('flag', size: 14, color: p.primary),
+              const SizedBox(width: 8),
+              Text(
+                'KUIS SELESAI',
+                style: TextStyle(
+                  color: p.primary,
+                  fontSize: 11.5,
+                  letterSpacing: 0.6,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: context.rs(20)),
+        Text(
+          '$_greeting, ${quiz.userName}!',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: p.ink,
+            fontSize: 30,
+            height: 1.2,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        SizedBox(height: context.rs(12)),
+        Text(
+          'Dasar Flutter makin kamu kuasai.\nIni hasil dari ${quiz.total} jawabanmu.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: p.muted, fontSize: 15, height: 1.45),
+        ),
+      ],
+    );
+  }
+}
+
+class _Stats extends StatelessWidget {
+  const _Stats({required this.quiz});
+
+  final QuizProvider quiz;
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: StatTile(
+              iconName: 'circle-check',
+              value: quiz.correctCount,
+              label: 'Benar dari ${quiz.total} soal',
+            ),
+          ),
+          SizedBox(width: context.rs(12)),
+          Expanded(
+            child: StatTile(
+              iconName: 'circle-x',
+              value: quiz.wrongCount,
+              label: 'Salah dari ${quiz.total} soal',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Actions extends StatelessWidget {
+  const _Actions({required this.quiz});
+
+  final QuizProvider quiz;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AppButton(
+          label: 'Tinjau jawaban',
+          icon: 'list-checks',
+          onPressed: () => context.push('/review'),
+        ),
+        SizedBox(height: context.rs(12)),
+        AppButton(
+          label: 'Coba lagi',
+          icon: 'rotate-ccw',
+          variant: AppButtonVariant.secondary,
+          onPressed: () {
+            quiz.retry();
+            context.go('/quiz');
+          },
+        ),
+        SizedBox(height: context.rs(8)),
+        AppButton(
+          label: 'Kembali ke beranda',
+          variant: AppButtonVariant.text,
+          onPressed: () {
+            context.go('/welcome');
+            quiz.reset();
+          },
+        ),
+      ],
     );
   }
 }

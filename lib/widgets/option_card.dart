@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
+import '../config/app_palette.dart';
+import '../utils/responsive.dart';
+import 'app_icon.dart';
+
+/// Kartu satu opsi jawaban: huruf A–D + label + radio/centang.
+/// Tanpa penanda benar/salah (itu hanya muncul di halaman tinjau).
 class OptionCard extends StatelessWidget {
-  final String letter; // 'A', 'B', 'C', 'D'
-  final String text;
-  final bool isSelected;
-  final VoidCallback onTap;
-
   const OptionCard({
     super.key,
     required this.letter,
@@ -15,77 +15,90 @@ class OptionCard extends StatelessWidget {
     required this.onTap,
   });
 
+  final String letter;
+  final String text;
+  final bool isSelected;
+  final VoidCallback onTap;
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
-    
-    // Warna untuk state terpilih dan tidak terpilih
-    final Color borderColor = isSelected 
-        ? theme.primaryColor 
-        : (isDarkMode ? Colors.grey[700]! : Colors.grey[300]!);
-    
-    final Color bgColor = isSelected
-        ? theme.primaryColor.withOpacity(0.1) // Efek highlight
-        : (isDarkMode ? Colors.grey[850]! : Colors.white);
-        
-    final Color textColor = isDarkMode ? Colors.white : Colors.black87;
+    final p = context.palette;
+    final radius = BorderRadius.circular(18);
+    final chip = context.rs(34);
 
-    return GestureDetector(
-      onTap: onTap,
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: 'Opsi $letter, $text',
+      excludeSemantics: true,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200), // Animasi estetik perpindahan state
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        duration: const Duration(milliseconds: 180),
         decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor, width: isSelected ? 2 : 1.5),
+          color: isSelected ? p.tint : p.card,
+          borderRadius: radius,
+          border: Border.all(
+            color: isSelected ? p.primary : p.border,
+            width: isSelected ? 2 : 1.2,
+          ),
         ),
-        child: Row(
-          children: [
-            // Lingkaran huruf opsi (A/B/C/D)
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: isSelected ? theme.primaryColor : (isDarkMode ? Colors.grey[700] : Colors.grey[200]),
-                shape: BoxShape.circle,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            borderRadius: radius,
+            onTap: onTap,
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: context.rs(14),
+                vertical: context.rs(16),
               ),
-              child: Center(
-                child: Text(
-                  letter,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: isSelected ? Colors.white : (isDarkMode ? Colors.grey[300] : Colors.grey[700]),
+              child: Row(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: chip,
+                    height: chip,
+                    decoration: BoxDecoration(
+                      color: isSelected ? p.primary : p.bg,
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      letter,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected ? p.onPrimary : p.muted,
+                      ),
+                    ),
                   ),
-                ),
+                  SizedBox(width: context.rs(14)),
+                  Expanded(
+                    child: Text(
+                      text,
+                      style: TextStyle(
+                        fontSize: 15,
+                        height: 1.3,
+                        color: p.ink,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: context.rs(10)),
+                  if (isSelected)
+                    AppIcon('circle-check', size: context.rs(22), color: p.primary)
+                  else
+                    Container(
+                      width: context.rs(22),
+                      height: context.rs(22),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: p.border, width: 1.5),
+                      ),
+                    ),
+                ],
               ),
             ),
-            const SizedBox(width: 16),
-            
-            // Teks jawaban
-            Expanded(
-              child: Text(
-                text,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: textColor,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-            ),
-            
-            // Ikon checklist kalau dipilih
-            if (isSelected)
-              SvgPicture.asset(
-                'assets/icons/circle-check.svg',
-                width: 24,
-                height: 24,
-                colorFilter: ColorFilter.mode(theme.primaryColor, BlendMode.srcIn),
-              ),
-          ],
+          ),
         ),
       ),
     );

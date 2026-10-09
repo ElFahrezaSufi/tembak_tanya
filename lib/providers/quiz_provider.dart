@@ -1,58 +1,113 @@
 import 'package:flutter/foundation.dart';
-import '../models/question_model.dart';
+
 import '../data/dummy_questions.dart';
+import '../models/question_model.dart';
 
-class QuizProvider with ChangeNotifier {
+/// State kuis: nama, jawaban, soal aktif, dan status selesai.
+///
+/// Disimpan di Provider (di atas Navigator) sehingga progres tidak hilang
+/// saat layar dirotasi atau pengguna berpindah halaman.
+class QuizProvider extends ChangeNotifier {
+  QuizProvider({List<Question>? questions})
+      : questions = List.unmodifiable(questions ?? dummyQuestions) {
+    _answers = List<int?>.filled(this.questions.length, null);
+  }
+
+  final List<Question> questions;
+
   String _userName = '';
-  int _score = 0;
-  
-  // State untuk melacak jawaban user. Key: questionId, Value: selectedOptionIndex
-  final Map<String, int> _userAnswers = {};
+  int _currentIndex = 0;
+  bool _finished = false;
+  late List<int?> _answers;
 
-  // Getters
+  // ---------------------------------------------------------------- getters
   String get userName => _userName;
-  int get score => _score;
-  Map<String, int> get userAnswers => _userAnswers;
-  
-  // Method untuk set nama user
-  void setUserName(String name) {
-    _userName = name;
+  int get currentIndex => _currentIndex;
+  bool get isFinished => _finished;
+  int get total => questions.length;
+  Question get currentQuestion => questions[_currentIndex];
+  List<int?> get answers => List.unmodifiable(_answers);
+
+  int get answeredCount => _answers.where((a) => a != null).length;
+  bool get allAnswered => answeredCount == total;
+  bool get isFirst => _currentIndex == 0;
+  bool get isLast => _currentIndex == total - 1;
+
+  /// Ada sesi yang sedang berjalan (sudah ada jawaban, belum selesai).
+  bool get hasActiveSession =>
+      _userName.isNotEmpty && !_finished && answeredCount > 0;
+
+  int? answerAt(int index) => _answers[index];
+  bool isAnswered(int index) => _answers[index] != null;
+  int? get currentAnswer => _answers[_currentIndex];
+
+  // ------------------------------------------------------------ hasil / skor
+  bool isCorrect(int index) =>
+      _answers[index] == questions[index].correctOptionIndex;
+
+  int get correctCount =>
+      List.generate(total, (i) => i).where(isCorrect).length;
+  int get wrongCount => total - correctCount;
+
+  /// Skor 0-100 = benar / total x 100.
+  int get score => total == 0 ? 0 : (correctCount * 100 / total).round();
+
+  /// Nomor soal (basis 1) yang dijawab salah.
+  List<int> get wrongQuestionNumbers => [
+        for (var i = 0; i < total; i++)
+          if (!isCorrect(i)) i + 1,
+      ];
+
+  // ------------------------------------------------------------------ aksi
+  /// Mulai sesi baru dengan nama pengguna.
+  void startSession(String name) {
+    _userName = name.trim();
+    _resetProgress();
     notifyListeners();
   }
 
-  // Method untuk menjawab pertanyaan
-  void answerQuestion(String questionId, int optionIndex) {
-    _userAnswers[questionId] = optionIndex;
+  void selectOption(int option) => selectOptionAt(_currentIndex, option);
+
+  void selectOptionAt(int questionIndex, int option) {
+    if (_finished) return; // setelah selesai jawaban dikunci
+    if (questionIndex < 0 || questionIndex >= total) return;
+    _answers[questionIndex] = option;
     notifyListeners();
   }
 
-  // Cek apakah suatu soal sudah dijawab
-  bool isQuestionAnswered(String questionId) {
-    return _userAnswers.containsKey(questionId);
-  }
-
-  // Mengambil jawaban untuk suatu soal
-  int? getSelectedOption(String questionId) {
-    return _userAnswers[questionId];
-  }
-
-  // Menghitung total skor berdasarkan jawaban yang benar
-  void calculateScore() {
-    int total = 0;
-    for (var question in dummyQuestions) {
-      if (_userAnswers[question.id] == question.correctOptionIndex) {
-        total += 20; // Asumsi 5 soal, masing-masing 20 poin
-      }
-    }
-    _score = total;
+  void goTo(int index) {
+    if (index < 0 || index >= total || index == _currentIndex) return;
+    _currentIndex = index;
     notifyListeners();
   }
 
-  // Reset progress (saat mau "Main Lagi")
-  void resetQuiz() {
+  void next() => goTo(_currentIndex + 1);
+  void previous() => goTo(_currentIndex - 1);
+
+  /// Tandai kuis selesai. Hanya berhasil jika semua soal sudah dijawab.
+  bool finish() {
+    if (!allAnswered) return false;
+    _finished = true;
+    notifyListeners();
+    return true;
+  }
+
+  /// "Coba lagi": nama dipertahankan, jawaban direset.
+  void retry() {
+    _resetProgress();
+    notifyListeners();
+  }
+
+  /// Kembali ke beranda: hapus semuanya.
+  void reset() {
     _userName = '';
-    _score = 0;
-    _userAnswers.clear();
+    _resetProgress();
     notifyListeners();
+  }
+
+  void _resetProgress() {
+    _answers = List<int?>.filled(total, null);
+    _currentIndex = 0;
+    _finished = false;
   }
 }

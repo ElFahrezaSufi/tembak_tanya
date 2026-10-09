@@ -10,8 +10,7 @@ import '../widgets/app_header.dart';
 import '../widgets/question_navigator.dart';
 import '../widgets/review_answer_card.dart';
 
-/// Tinjau jawaban: grid nomor (soal salah ditandai), kartu pembahasan, dan
-/// tombol Soal sebelumnya / berikutnya.
+/// Tinjau jawaban: grid nomor (soal salah ditandai) dan kartu pembahasan.
 class ReviewScreen extends StatefulWidget {
   const ReviewScreen({super.key});
 
@@ -21,26 +20,16 @@ class ReviewScreen extends StatefulWidget {
 
 class _ReviewScreenState extends State<ReviewScreen> {
   late final List<GlobalKey> _cardKeys;
-  int _selected = 0;
 
   @override
   void initState() {
     super.initState();
     final quiz = context.read<QuizProvider>();
     _cardKeys = List.generate(quiz.total, (_) => GlobalKey());
-    // Nomor terpilih awal = soal salah pertama (jika ada); halaman tetap dibuka dari atas.
-    final wrong = quiz.wrongQuestionNumbers;
-    if (wrong.isNotEmpty) _selected = wrong.first - 1;
-  }
-
-  void _select(int index) {
-    final total = _cardKeys.length;
-    if (index < 0 || index >= total) return;
-    setState(() => _selected = index);
-    _scrollTo(index);
   }
 
   void _scrollTo(int index, {bool animate = true}) {
+    if (index < 0 || index >= _cardKeys.length) return;
     final target = _cardKeys[index].currentContext;
     if (target == null) return;
     Scrollable.ensureVisible(
@@ -103,13 +92,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   QuestionNavigator(
                     total: quiz.total,
                     aspectRatio: 1.45,
-                    onSelect: _select,
-                    stateOf: (i) {
-                      if (i == _selected) return NavChipState.current;
-                      return quiz.isCorrect(i)
-                          ? NavChipState.answered
-                          : NavChipState.wrong;
-                    },
+                    onSelect: _scrollTo,
+                    stateOf: (i) => quiz.isCorrect(i)
+                        ? NavChipState.answered
+                        : NavChipState.wrong,
                   ),
                   SizedBox(height: context.rs(14)),
                   Text(wrongNote, style: TextStyle(color: p.muted, fontSize: 12.5)),
@@ -125,32 +111,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     ),
                     SizedBox(height: context.rs(16)),
                   ],
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppButton(
-                          label: 'Soal sebelumnya',
-                          variant: AppButtonVariant.secondary,
-                          dimmed: _selected == 0,
-                          onPressed: _selected == 0 ? null : () => _select(_selected - 1),
-                        ),
-                      ),
-                      SizedBox(width: context.rs(12)),
-                      Expanded(
-                        child: AppButton(
-                          label: 'Soal berikutnya',
-                          dimmed: _selected == quiz.total - 1,
-                          onPressed: _selected == quiz.total - 1
-                              ? null
-                              : () => _select(_selected + 1),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: context.rs(8)),
                   AppButton(
                     label: 'Kembali ke hasil',
-                    variant: AppButtonVariant.text,
                     onPressed: _back,
                   ),
                 ],

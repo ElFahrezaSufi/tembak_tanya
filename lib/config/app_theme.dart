@@ -1,79 +1,62 @@
 import 'package:flutter/material.dart';
 
-class AppTheme {
-  // Warna Utama (diambil berdasarkan deskripsi "indigo")
-  static const Color primaryColor = Colors.indigo;
-  
-  static ThemeData get lightTheme {
-    return ThemeData(
-      brightness: Brightness.light,
-      primarySwatch: Colors.indigo,
-      primaryColor: primaryColor,
-      fontFamily: 'Inter',
-      scaffoldBackgroundColor: const Color(0xFFF8F9FA),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: IconThemeData(color: Colors.black87),
-        titleTextStyle: TextStyle(
-          color: Colors.black87,
-          fontFamily: 'Inter',
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          textStyle: const TextStyle(
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
-          ),
-        ),
-      ),
-    );
-  }
+import 'app_palette.dart';
 
-  static ThemeData get darkTheme {
+/// Definisi tema terang & gelap TembakTanya.
+class AppTheme {
+  AppTheme._();
+
+  static const String fontFamily = 'Inter';
+
+  static ThemeData get lightTheme => _build(AppPalette.light, Brightness.light);
+
+  static ThemeData get darkTheme => _build(AppPalette.dark, Brightness.dark);
+
+  static ThemeData _build(AppPalette p, Brightness brightness) {
+    final scheme = ColorScheme.fromSeed(
+      seedColor: p.primary,
+      brightness: brightness,
+    ).copyWith(
+      primary: p.primary,
+      onPrimary: p.onPrimary,
+      surface: p.card,
+      onSurface: p.ink,
+      error: p.error,
+      outline: p.border,
+    );
+
     return ThemeData(
-      brightness: Brightness.dark,
-      primarySwatch: Colors.indigo,
-      primaryColor: primaryColor,
-      fontFamily: 'Inter',
-      scaffoldBackgroundColor: const Color(0xFF121212),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: IconThemeData(color: Colors.white),
-        titleTextStyle: TextStyle(
-          color: Colors.white,
-          fontFamily: 'Inter',
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
+      useMaterial3: true,
+      brightness: brightness,
+      fontFamily: fontFamily,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: p.bg,
+      canvasColor: p.bg,
+      dividerColor: p.border,
+      extensions: [p],
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: p.primary,
+        selectionColor: p.primary.withValues(alpha: 0.25),
+        selectionHandleColor: p.primary,
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: p.card,
+        modalBackgroundColor: p.card,
+        surfaceTintColor: Colors.transparent,
+        modalBarrierColor: Colors.black.withValues(alpha: 0.5),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
       ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          textStyle: const TextStyle(
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
-          ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: p.ink,
+        contentTextStyle: TextStyle(
+          fontFamily: fontFamily,
+          color: p.bg,
+          fontWeight: FontWeight.w500,
         ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
   }

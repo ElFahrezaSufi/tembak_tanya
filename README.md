@@ -4,7 +4,7 @@ Aplikasi kuis pilihan ganda berbasis Flutter — **UTS Lab 5 Pemrograman Mobile*
 
 ## Identitas Mahasiswa
 
-| | |
+| Atribut | Keterangan |
 |---|---|
 | **Nama** | El Fahreza Sufi |
 | **NIM** | 241401042 |

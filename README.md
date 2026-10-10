@@ -1,20 +1,20 @@
 # TembakTanya
 
-Aplikasi kuis pilihan ganda berbasis Flutter — **UTS Lab Pemrograman Mobile** (Semester Ganjil T.A. 2026/2027).
+Aplikasi kuis pilihan ganda berbasis Flutter — **UTS Lab 5 Pemrograman Mobile**.
 
 ## Identitas Mahasiswa
 
 | | |
 |---|---|
-| **Nama** | `[ISI NAMA LENGKAP]` |
-| **NIM** | `[ISI NIM]` |
+| **Nama** | El Fahreza Sufi |
+| **NIM** | 241401042 |
 | **Lab** | PM 5 |
 
 ## Informasi Aplikasi
 
 **Nama Aplikasi:** TembakTanya
 
-**Deskripsi singkat:** TembakTanya adalah kuis lokal untuk menguji pemahaman dasar Flutter. Pengguna memasukkan nama, menjawab 10 soal pilihan ganda satu per satu, lalu melihat skor akhir beserta pembahasan tiap soal. Tidak memerlukan akun, database, maupun koneksi internet.
+**Deskripsi singkat:** TembakTanya adalah aplikasi kuis pilihan ganda untuk menguji pemahaman dasar Flutter. Pengguna memasukkan nama, menjawab 10 soal pilihan ganda satu per satu, lalu melihat skor akhir beserta pembahasan tiap soal. Tidak memerlukan akun, database, maupun koneksi internet.
 
 ### Fitur
 
@@ -43,10 +43,13 @@ Aplikasi kuis pilihan ganda berbasis Flutter — **UTS Lab Pemrograman Mobile** 
 | 7 | State management | `provider` — `QuizProvider`, `ThemeProvider` |
 | 8 | Tanpa database | Data soal lokal di `lib/data/dummy_questions.dart` |
 | 9 | GitHub | Riwayat commit per fitur |
+| 10 | Desain | Tampilan Mockup aplikasi dibuat menggunakan Figma |
 
 ## Struktur Proyek
 
 ```
+assets/{fonts,icons,images}/  # tempat menyimpan fonts, icons, dan logo aplikasi
+docs/{hp,tablet,web}/         # tempat menyimpan dokumentasi screenshot untuk setiap halaman
 lib/
 ├── main.dart                 # entry point + provider + router
 ├── config/                   # app_theme, app_palette, routes
@@ -56,7 +59,6 @@ lib/
 ├── screens/                  # splash, welcome, quiz, result, review
 ├── utils/                    # responsive helper
 └── widgets/                  # komponen reusable
-assets/{fonts,icons,images}/
 test/                         # unit test provider + widget test alur aplikasi
 ```
 
@@ -64,8 +66,8 @@ test/                         # unit test provider + widget test alur aplikasi
 
 ```bash
 flutter pub get
-flutter run            # perangkat / emulator
-flutter run -d chrome  # tampilan browser
+flutter run            # perangkat / emulator (HP, Tablet)
+flutter run -d chrome  # tampilan web browser
 flutter test
 ```
 
@@ -79,19 +81,12 @@ flutter test
 
 ### Screenshot Tiap Halaman
 
-> Ganti dengan screenshot dari emulator/perangkat (simpan di `docs/screenshots/`).
+Seluruh dokumentasi screenshot untuk setiap halaman bisa dilihat pada direktori folder docs (/hp, /tablet, /web) atau bisa juga dilihat melalui folder Google Drive berikut:
 
-| Halaman | Screenshot |
-|---|---|
-| Splash | `docs/screenshots/01_splash.png` |
-| Sambutan (+ validasi) | `docs/screenshots/02_welcome.png` |
-| Kuis | `docs/screenshots/03_quiz.png` |
-| Konfirmasi selesai | `docs/screenshots/04_confirm.png` |
-| Hasil | `docs/screenshots/05_result.png` |
-| Tinjau jawaban | `docs/screenshots/06_review.png` |
-| Mode gelap | `docs/screenshots/07_dark.png` |
-| Tablet / Browser | `docs/screenshots/08_tablet.png`, `docs/screenshots/09_browser.png` |
+https://drive.google.com/drive/folders/1NBItVGnb7o3_LlJx9c0hN3LpFqUCvYU9?usp=drive_link
 
 ### Mockup / Prototype
 
-`[ISI LINK FIGMA MOCKUP]`
+Berikut adalah link Figma untuk desain mockup aplikasi TembakTanya:
+
+https://www.figma.com/design/2NZGoAMXkI0NeZ1sesHIwm/Aplikasi-TembakTanya?node-id=0-1&t=JgrppzKgvwr0bV3x-1
